@@ -2,31 +2,19 @@
 //  FlightsApp.swift
 //  Flights
 //
-//  Created by Erin Heim on 11/29/25.
+//  Created by Monica Heim on 11/25/25.
 //
 
 import SwiftUI
-import SwiftData
 
 @main
 struct FlightsApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @StateObject private var flightService = FlightService()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(flightService)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
