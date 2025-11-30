@@ -2,7 +2,7 @@
 //  FlightSearchView.swift
 //  Flights
 //
-//  Created by Monica Heim on 11/25/25.
+//  Created by Erin Heim on 11/25/25.
 //
 
 import SwiftUI
