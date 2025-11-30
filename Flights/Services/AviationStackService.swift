@@ -214,6 +214,9 @@ class AviationStackService {
             items.append(URLQueryItem(name: "flight_iata", value: trimmed))
         } else if !trimmed.isEmpty {
             // Broader search on airline name/code and generic search
+            if let inferred = inferredAirlineCode(from: trimmed) {
+                items.append(URLQueryItem(name: "airline_iata", value: inferred))
+            }
             items.append(URLQueryItem(name: "airline_name", value: trimmed))
             items.append(URLQueryItem(name: "search", value: trimmed))
         }
@@ -225,5 +228,34 @@ class AviationStackService {
         var components = URLComponents(string: "\(baseURL)\(path)")
         components?.queryItems = items
         return components?.url
+    }
+
+    // Try to infer an airline IATA code from a free-form query to improve matches (e.g., "Alaska" -> "AS").
+    private func inferredAirlineCode(from query: String) -> String? {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let upper = trimmed.uppercased()
+
+        // If the query looks like a 2-3 letter code, use it directly.
+        if upper.count <= 3, upper.range(of: "^[A-Z]{2,3}$", options: .regularExpression) != nil {
+            return upper
+        }
+
+        // Common airline name -> code mapping (extend as needed).
+        let known: [String: String] = [
+            "ALASKA": "AS",
+            "ALASKA AIRLINES": "AS",
+            "DELTA": "DL",
+            "DELTA AIR LINES": "DL",
+            "AMERICAN": "AA",
+            "AMERICAN AIRLINES": "AA",
+            "UNITED": "UA",
+            "UNITED AIRLINES": "UA",
+            "SOUTHWEST": "WN",
+            "SOUTHWEST AIRLINES": "WN",
+            "JETBLUE": "B6",
+            "JETBLUE AIRWAYS": "B6"
+        ]
+
+        return known[upper]
     }
 }

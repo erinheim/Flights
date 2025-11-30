@@ -17,7 +17,7 @@ SwiftUI app for tracking flights and trips. Ships with mock data for quick previ
   `xcodebuild test -scheme Flights -destination "platform=iOS Simulator,name=iPhone 16"`
 
 ## Data & Services
-- Live data: AviationStack (`AVIATIONSTACK_API_KEY`) is used for search and flight lookups when a key is present (prefer flight numbers like `AS338`, but airline names like “Alaska” also work).
+- Live data: AviationStack (`AVIATIONSTACK_API_KEY`) is used for search and flight lookups when a key is present. Best results come from flight numbers (`AS338`, `DL220`). Airline names are supported with light inference (e.g., “Alaska” -> IATA `AS`).
 - Offline/demo: Mock data remains available and is used automatically when no key or when API errors occur.
 - User flights: persisted locally via `UserDefaults`; you can add flights manually in-app.
 
