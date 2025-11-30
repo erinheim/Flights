@@ -34,7 +34,7 @@ enum AviationStackError: Error {
 }
 
 class AviationStackService {
-    private let baseURL = "http://api.aviationstack.com/v1"
+    private let baseURL = "https://api.aviationstack.com/v1"
     private var apiKey: String?
 
     // Airport cache for faster lookups
