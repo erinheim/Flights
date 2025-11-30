@@ -13,14 +13,18 @@ class FlightService: ObservableObject {
     @Published var searchResults: [Flight] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var useRealData = false // Using demo data for now
+    @Published var useRealData = false
     @Published var userFlights: [Flight] = [] // User-added flights
 
+    private let aviationService = AviationStackService()
     private let userFlightsKey = "userFlights"
 
     init() {
         loadUserFlights()
-        loadMockData()
+        useRealData = aviationService.hasAPIKey()
+        if !useRealData {
+            loadMockData()
+        }
     }
 
     // MARK: - User Flights Management
@@ -91,31 +95,59 @@ class FlightService: ObservableObject {
     // MARK: - Flight Search
 
     func searchFlights(query: String) {
-        // Use demo data with realistic scenarios
-        searchFlightsLocally(query: query)
+        Task { [weak self] in
+            await self?.performSearch(query: query)
+        }
     }
 
-    private func searchFlightsLocally(query: String) {
-        // Combine user flights with mock flights
+    @MainActor
+    private func performSearch(query: String) async {
+        isLoading = true
+        errorMessage = nil
+
+        // Only hit the network when an API key is present
+        if useRealData, aviationService.hasAPIKey(), !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            do {
+                let apiFlights = try await aviationService.searchFlights(query: query)
+                searchResults = mergeUserFlights(with: apiFlights, query: query)
+                isLoading = false
+                return
+            } catch {
+                // Surface API errors and fall back to local mock data
+                errorMessage = (error as? AviationStackError)?.localizedDescription ?? error.localizedDescription
+            }
+        }
+
+        searchResults = searchFlightsLocally(query: query)
+        isLoading = false
+    }
+
+    private func searchFlightsLocally(query: String) -> [Flight] {
         let mockFlights = MockData.createMockFlights(airports: MockData.airports)
         let allFlights = userFlights + mockFlights
 
-        if query.isEmpty {
-            searchResults = allFlights
-        } else {
-            searchResults = allFlights.filter { flight in
-                flight.flightNumber.localizedCaseInsensitiveContains(query) ||
-                flight.airline.localizedCaseInsensitiveContains(query) ||
-                flight.origin.code.localizedCaseInsensitiveContains(query) ||
-                flight.destination.code.localizedCaseInsensitiveContains(query) ||
-                flight.origin.city.localizedCaseInsensitiveContains(query) ||
-                flight.destination.city.localizedCaseInsensitiveContains(query)
-            }
+        guard !query.isEmpty else { return allFlights }
+
+        return allFlights.filter { flight in
+            flight.flightNumber.localizedCaseInsensitiveContains(query) ||
+            flight.airline.localizedCaseInsensitiveContains(query) ||
+            flight.origin.code.localizedCaseInsensitiveContains(query) ||
+            flight.destination.code.localizedCaseInsensitiveContains(query) ||
+            flight.origin.city.localizedCaseInsensitiveContains(query) ||
+            flight.destination.city.localizedCaseInsensitiveContains(query)
         }
     }
 
     // Get a specific flight by flight number
     func getFlight(flightNumber: String, date: Date? = nil) async throws -> Flight? {
+        if useRealData, aviationService.hasAPIKey() {
+            do {
+                return try await aviationService.getFlight(flightNumber: flightNumber, date: date)
+            } catch {
+                errorMessage = (error as? AviationStackError)?.localizedDescription ?? error.localizedDescription
+            }
+        }
+
         let allFlights = MockData.createMockFlights(airports: MockData.airports)
         return allFlights.first { $0.flightNumber == flightNumber }
     }
@@ -130,5 +162,20 @@ class FlightService: ObservableObject {
     var pastTrips: [Trip] {
         trips.filter { $0.isPast }
             .sorted { ($0.startDate ?? Date.distantPast) > ($1.startDate ?? Date.distantPast) }
+    }
+
+    private func mergeUserFlights(with apiFlights: [Flight], query: String) -> [Flight] {
+        guard !userFlights.isEmpty else { return apiFlights }
+
+        // Include user flights that match the same query to keep custom data visible alongside live results
+        let matchingUserFlights = userFlights.filter { flight in
+            query.isEmpty ||
+            flight.flightNumber.localizedCaseInsensitiveContains(query) ||
+            flight.airline.localizedCaseInsensitiveContains(query) ||
+            flight.origin.code.localizedCaseInsensitiveContains(query) ||
+            flight.destination.code.localizedCaseInsensitiveContains(query)
+        }
+
+        return matchingUserFlights + apiFlights
     }
 }
