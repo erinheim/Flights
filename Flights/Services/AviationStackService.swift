@@ -211,7 +211,10 @@ class AviationStackService {
 
         // Prefer flight number queries when digits are present
         if trimmed.rangeOfCharacter(from: .decimalDigits) != nil {
-            items.append(URLQueryItem(name: "flight_iata", value: trimmed))
+            let normalizedFlight = normalizedFlightNumber(trimmed)
+            items.append(URLQueryItem(name: "flight_iata", value: normalizedFlight))
+            // Also send generic search as a fallback
+            items.append(URLQueryItem(name: "search", value: normalizedFlight))
         } else if !trimmed.isEmpty {
             // Broader search on airline name/code and generic search
             if let inferred = inferredAirlineCode(from: trimmed) {
@@ -257,5 +260,38 @@ class AviationStackService {
         ]
 
         return known[upper]
+    }
+
+    // Normalize user-entered flight numbers:
+    // - If user types an ICAO-style code (e.g., "ASA103"), convert to IATA ("AS103").
+    // - Otherwise return trimmed input.
+    private func normalizedFlightNumber(_ input: String) -> String {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+
+        // If already looks like IATA (2 letters + digits), keep as-is.
+        if trimmed.range(of: "^[A-Z]{2}[0-9].*", options: .regularExpression) != nil {
+            return trimmed
+        }
+
+        // If looks like ICAO (3 letters + digits), try to map prefix.
+        if let match = trimmed.range(of: "^[A-Z]{3}[0-9].*", options: .regularExpression) {
+            let prefix = String(trimmed.prefix(3))
+            let suffix = String(trimmed.suffix(trimmed.count - 3))
+            if let iata = inferredIATACode(fromICAO: prefix) {
+                return iata + suffix
+            }
+        }
+
+        return trimmed
+    }
+
+    private func inferredIATACode(fromICAO icao: String) -> String? {
+        let map: [String: String] = [
+            "ASA": "AS", // Alaska
+            "DAL": "DL", // Delta
+            "UAL": "UA", // United
+            "AAL": "AA"  // American
+        ]
+        return map[icao.uppercased()]
     }
 }
