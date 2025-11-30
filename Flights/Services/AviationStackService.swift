@@ -62,17 +62,8 @@ class AviationStackService {
             throw AviationStackError.noAPIKey
         }
 
-        // Build URL with query parameters
-        var components = URLComponents(string: "\(baseURL)/flights")
-        components?.queryItems = [
-            URLQueryItem(name: "access_key", value: apiKey),
-            URLQueryItem(name: "search", value: query),
-            URLQueryItem(name: "limit", value: "20")
-        ]
-
-        guard let url = components?.url else {
-            throw AviationStackError.invalidURL
-        }
+        let queryItems = buildQueryItems(for: query, apiKey: apiKey)
+        guard let url = urlWith(path: "/flights", items: queryItems) else { throw AviationStackError.invalidURL }
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
@@ -117,23 +108,17 @@ class AviationStackService {
             throw AviationStackError.noAPIKey
         }
 
-        var components = URLComponents(string: "\(baseURL)/flights")
         var queryItems = [
             URLQueryItem(name: "access_key", value: apiKey),
             URLQueryItem(name: "flight_iata", value: flightNumber)
         ]
-
         if let date = date {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd"
             queryItems.append(URLQueryItem(name: "flight_date", value: dateFormatter.string(from: date)))
         }
 
-        components?.queryItems = queryItems
-
-        guard let url = components?.url else {
-            throw AviationStackError.invalidURL
-        }
+        guard let url = urlWith(path: "/flights", items: queryItems) else { throw AviationStackError.invalidURL }
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
@@ -213,5 +198,32 @@ class AviationStackService {
     // Check if API key is configured
     func hasAPIKey() -> Bool {
         return apiKey != nil && !apiKey!.isEmpty
+    }
+
+    // MARK: - Helpers
+
+    private func buildQueryItems(for query: String, apiKey: String) -> [URLQueryItem] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        var items: [URLQueryItem] = [
+            URLQueryItem(name: "access_key", value: apiKey),
+            URLQueryItem(name: "limit", value: "20")
+        ]
+
+        // Prefer flight number queries when digits are present
+        if trimmed.rangeOfCharacter(from: .decimalDigits) != nil {
+            items.append(URLQueryItem(name: "flight_iata", value: trimmed))
+        } else if !trimmed.isEmpty {
+            // Broader search on airline name/code and generic search
+            items.append(URLQueryItem(name: "airline_name", value: trimmed))
+            items.append(URLQueryItem(name: "search", value: trimmed))
+        }
+
+        return items
+    }
+
+    private func urlWith(path: String, items: [URLQueryItem]) -> URL? {
+        var components = URLComponents(string: "\(baseURL)\(path)")
+        components?.queryItems = items
+        return components?.url
     }
 }

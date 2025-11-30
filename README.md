@@ -4,7 +4,9 @@ SwiftUI app for tracking flights and trips. Ships with mock data for quick previ
 
 ## Setup
 - Requires Xcode 16 and iOS 17+ simulators.
-- Add an AviationStack API key to `Flights/Info.plist` with key `AVIATIONSTACK_API_KEY`. (The app automatically falls back to mock data if no key is present.)
+- Add an AviationStack API key via `Config.local.xcconfig` (git-ignored). Example:  
+  `AVIATIONSTACK_API_KEY = <your_key>`
+- A sample `Config.example.xcconfig` is provided; the target already includes it and will pick up `Config.local.xcconfig` if present. The app falls back to mock data if no key is present.
 - Optional: create a `.xcconfig` (git-ignored) to hold secrets and reference it from the target’s build settings instead of committing keys.
 
 ## Run & Test
@@ -15,7 +17,7 @@ SwiftUI app for tracking flights and trips. Ships with mock data for quick previ
   `xcodebuild test -scheme Flights -destination "platform=iOS Simulator,name=iPhone 16"`
 
 ## Data & Services
-- Live data: AviationStack (`AVIATIONSTACK_API_KEY`) is used for search and flight lookups when a key is present.
+- Live data: AviationStack (`AVIATIONSTACK_API_KEY`) is used for search and flight lookups when a key is present (prefer flight numbers like `AS338`, but airline names like “Alaska” also work).
 - Offline/demo: Mock data remains available and is used automatically when no key or when API errors occur.
 - User flights: persisted locally via `UserDefaults`; you can add flights manually in-app.
 
