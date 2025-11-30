@@ -27,6 +27,7 @@
 		9A479D532EDB71C7000BBA46 /* Flights.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flights.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A479D672EDB71C8000BBA46 /* FlightsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlightsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A479D712EDB71C8000BBA46 /* FlightsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlightsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9AF0C0FF2F00000000000001 /* Config.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.example.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +89,7 @@
 		9A479D4A2EDB71C7000BBA46 = {
 			isa = PBXGroup;
 			children = (
+				9AF0C0FF2F00000000000001 /* Config.example.xcconfig */,
 				9A479D552EDB71C7000BBA46 /* Flights */,
 				9A479D6A2EDB71C8000BBA46 /* FlightsTests */,
 				9A479D742EDB71C8000BBA46 /* FlightsUITests */,
@@ -287,6 +289,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				baseConfigurationReference = 9AF0C0FF2F00000000000001 /* Config.example.xcconfig */;
 				CODE_SIGN_ENTITLEMENTS = Flights/Flights.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -318,6 +321,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				baseConfigurationReference = 9AF0C0FF2F00000000000001 /* Config.example.xcconfig */;
 				CODE_SIGN_ENTITLEMENTS = Flights/Flights.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

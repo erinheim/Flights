@@ -1,0 +1,5 @@
+# Include local secrets if present (not tracked)
+#include? "Config.local.xcconfig"
+
+// Public/placeholder values
+AVIATIONSTACK_API_KEY = YOUR_API_KEY_HERE

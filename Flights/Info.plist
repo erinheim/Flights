@@ -10,6 +10,8 @@
 	<string>Flights</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>AVIATIONSTACK_API_KEY</key>
+	<string>$(AVIATIONSTACK_API_KEY)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
